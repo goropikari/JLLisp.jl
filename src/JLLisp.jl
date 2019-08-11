@@ -5,6 +5,7 @@ abstract type Atom <: T end
 abstract type Number_ <: Atom end
 abstract type List <: T end
 struct Null <: List end
+const Nil = Null()
 Base.string(x::Null) = "NIL"
 
 module Eval
@@ -267,8 +268,12 @@ module Reader
     indexofline = 1
     linelength = 0
 
-    function read()
-        global line = readline()
+    function read(;ex = "")
+        if isempty(ex)
+            global line = readline()
+        else # For test
+            global line = ex
+        end
         prepare()
         return getSexp()
     end
@@ -390,6 +395,7 @@ module Reader
 end # Reader
 
 module TopLevel
+    export repl
     using ..JLLisp
     function repl()
         println("Welcome to JLLisp! (2019-8-11)")
@@ -411,5 +417,8 @@ module TopLevel
         println("Bye!")
     end
 end
+
+using .TopLevel
+export repl
 
 end # JLLisp module
