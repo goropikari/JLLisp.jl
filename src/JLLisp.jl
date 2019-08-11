@@ -5,6 +5,7 @@ abstract type Atom <: T end
 abstract type Number_ <: Atom end
 abstract type List <: T end
 struct Null <: List end
+Base.string(x::Null) = "NIL"
 
 module Eval
     import ..JLLisp
@@ -85,8 +86,16 @@ module Integer__
     end
 
     # todo: other operations
+    lisptf(bool) = bool ? JLLisp.Symbols.symbolT : JLLisp.Null()
     add(a::Integer_, b::Integer_) = Integer_(+(a.value, b.value))
-
+    sub(a::Integer_, b::Integer_) = Integer_(-(a.value, b.value))
+    mul(a::Integer_, b::Integer_) = Integer_(*(a.value, b.value))
+    Base.div(a::Integer_, b::Integer_) = Integer_(div(a.value, b.value))
+    ge(a::Integer_, b::Integer_) = lisptf(>=(a.value, b.value))
+    le(a::Integer_, b::Integer_) = lisptf(<=(a.value, b.value))
+    gt(a::Integer_, b::Integer_) = lisptf(>(a.value, b.value))
+    lt(a::Integer_, b::Integer_) = lisptf(<(a.value, b.value))
+    numberequal(a::Integer_, b::Integer_) = lisptf(a.value == b.value)
     Base.string(x::Integer_) = string(x.value)
 end # Integer__
 
@@ -119,7 +128,16 @@ module Function_
     struct Car <: Func end
     struct Cdr <: Func end
     struct FunCons <: Func end
+    struct Eq <: Func end
     struct Add <: Func end
+    struct Sub <: Func end
+    struct Mul <: Func end
+    struct Div <: Func end
+    struct Ge <: Func end
+    struct Le <: Func end
+    struct Gt <: Func end
+    struct Lt <: Func end
+    struct NumberEqual <: Func end
     struct Defun <: Func end
     struct SymbolFunction <: Func end
 
@@ -139,10 +157,68 @@ module Function_
         return JLLisp.Cons_.Cons(arg1, arg2)
     end
 
+    function funcall(fn::Eq, arguments::JLLisp.List)
+        arg1 = JLLisp.Eval.eval(arguments.car)
+        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        if arg1 == arg2
+            return JLLisp.Symbols.symbolT
+        else
+            return JLLisp.Cons_.Cons(arg1, arg2)
+        end
+    end
+
     function funcall(fn::Add, arguments::JLLisp.List)
         arg1 = JLLisp.Eval.eval(arguments.car)
         arg2 = JLLisp.Eval.eval(arguments.cdr.car)
         return JLLisp.Integer__.add(arg1, arg2)
+    end
+
+    function funcall(fn::Sub, arguments::JLLisp.List)
+        arg1 = JLLisp.Eval.eval(arguments.car)
+        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        return JLLisp.Integer__.sub(arg1, arg2)
+    end
+
+    function funcall(fn::Mul, arguments::JLLisp.List)
+        arg1 = JLLisp.Eval.eval(arguments.car)
+        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        return JLLisp.Integer__.mul(arg1, arg2)
+    end
+
+    function funcall(fn::Div, arguments::JLLisp.List)
+        arg1 = JLLisp.Eval.eval(arguments.car)
+        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        return JLLisp.Integer__.div(arg1, arg2)
+    end
+
+    function funcall(fn::Ge, arguments::JLLisp.List)
+        arg1 = JLLisp.Eval.eval(arguments.car)
+        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        return JLLisp.Integer__.ge(arg1, arg2)
+    end
+
+    function funcall(fn::Le, arguments::JLLisp.List)
+        arg1 = JLLisp.Eval.eval(arguments.car)
+        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        return JLLisp.Integer__.le(arg1, arg2)
+    end
+
+    function funcall(fn::Gt, arguments::JLLisp.List)
+        arg1 = JLLisp.Eval.eval(arguments.car)
+        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        return JLLisp.Integer__.gt(arg1, arg2)
+    end
+
+    function funcall(fn::Lt, arguments::JLLisp.List)
+        arg1 = JLLisp.Eval.eval(arguments.car)
+        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        return JLLisp.Integer__.lt(arg1, arg2)
+    end
+
+    function funcall(fn::NumberEqual, arguments::JLLisp.List)
+        arg1 = JLLisp.Eval.eval(arguments.car)
+        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        return JLLisp.Integer__.numberequal(arg1, arg2)
     end
 
     function funcall(fn::Defun, arguments::JLLisp.List)
@@ -165,8 +241,17 @@ module Function_
         regist("CAR", Car())
         regist("CDR", Cdr())
         regist("CONS", FunCons())
+        regist("EQ", Eq())
         regist("+", Add())
-        regist("Defun", Defun())
+        regist("-", Sub())
+        regist("*", Mul())
+        regist("/", Div())
+        regist(">=", Ge())
+        regist("<=", Le())
+        regist(">", Gt())
+        regist("<", Lt())
+        regist("=", NumberEqual())
+        regist("DEFUN", Defun())
         regist("SYMBOL-FUNCTION", SymbolFunction())
     end
     registSystemFunctions()

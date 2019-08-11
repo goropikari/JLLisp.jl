@@ -16,7 +16,7 @@ using Test
     @test JLLisp.Integer__.Integer_(3) == JLLisp.Function_.funcall(JLLisp.Function_.Add(), z)
 
     form = JLLisp.Cons_.Cons()
-    form.car = JLLisp.Symbols.symboltable["ADD"]
+    form.car = JLLisp.Symbols.symboltable["+"]
     form.cdr = JLLisp.Cons_.Cons(x, JLLisp.Cons_.Cons(y, JLLisp.Null()))
     @test JLLisp.Eval.eval_(form) == JLLisp.Integer__.Integer_(3)
 end
