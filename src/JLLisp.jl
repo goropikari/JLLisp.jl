@@ -68,6 +68,7 @@ module Symbols
         end
     end
 
+    Base.string(x::Symbol_) = x.name
     const symboltable = Dict{String, Symbol_}()
     function symbol_(name::String)
         get!(symboltable, name, Symbol_(name))
