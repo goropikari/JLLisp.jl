@@ -6,6 +6,29 @@ abstract type Number_ <: Atom end
 abstract type List <: T end
 struct Null <: List end
 
+module Eval
+    import ..JLLisp
+    const maxstacksize = 65536
+    const stack = Vector{JLLisp.T}(undef, maxstacksize)
+    stackP = 0
+
+    function eval_(form::JLLisp.T)
+        if isa(form, JLLisp.Symbols.Symbol_)
+            try
+                symbolvalue = form.value
+            catch
+                error("Unbound Variable Error: $(form)")
+            end
+            return symbolvalue
+        end
+
+        if isa(form, JLLisp.Null) return form end
+        if isa(form, JLLisp.Atom) return form end
+        # todo: cons
+    end
+
+end # Eval
+
 module Symbols
     import ..JLLisp
 
@@ -33,7 +56,8 @@ module Symbols
 end # Symbols_
 
 module Integer__
-    struct Integer_
+    import ..JLLisp
+    struct Integer_ <: JLLisp.Number_
         value::Integer
     end
 
