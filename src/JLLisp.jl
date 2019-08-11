@@ -86,6 +86,8 @@ module Integer__
 
     # todo: other operations
     add(a::Integer_, b::Integer_) = Integer_(+(a.value, b.value))
+
+    Base.string(x::Integer_) = string(x.value)
 end # Integer__
 
 module Cons_
@@ -163,7 +165,7 @@ module Function_
         regist("CAR", Car())
         regist("CDR", Cdr())
         regist("CONS", FunCons())
-        regist("ADD", Add())
+        regist("+", Add())
         regist("Defun", Defun())
         regist("SYMBOL-FUNCTION", SymbolFunction())
     end
@@ -215,12 +217,48 @@ module Reader
         end
     end
 
-    function makelist() end
-    function makequote() end
+    function makelist()
+        getchar()
+        skipspace()
+        if ch == ')'
+            getchar()
+            return JLLisp.Null()
+        end
+        top = JLLisp.Cons_.Cons()
+        list = top
+        while true
+            list.car = getSexp()
+            skipspace()
+            indexofline > linelength && JLLisp.Null() # 不等号要注意
+            ch == ')' && break
+            if ch == '.'
+                getchar()
+                list.cdr = getSexp()
+                skipspace()
+                getchar()
+                return top
+            end
+            list.cdr = JLLisp.Cons_.Cons()
+            list = list.cdr
+        end
+        getchar()
+        return top
+    end
+
+    function makequote()
+        top = JLLisp.Cons_.Cons()
+        list = top
+        list.car = JLLisp.Symbols.symbol_("QUOTE")
+        list.cdr = JLLisp.Cons_.Cons()
+        list = list.cdr
+        getchar()
+        list.car = getSexp()
+        return top
+    end
 
     function makeminusnumber()
         nch = charbuff[indexofline]
-        isdigit(nch) || return makesymbolinternal(Char[ch]) # todo: 修正
+        isdigit(nch) || return makesymbolinternal(Char[ch])
         return makenumber()
     end
 
@@ -267,21 +305,24 @@ end # Reader
 
 module TopLevel
     using ..JLLisp
-    println("Welcome to JLLisp! (2019-8-11)")
-    println("> Copyright (C) goropikari 2019.")
-    println("> Type quit and hit Enter for leaving JLLisp.")
-    JLLisp.Function_.registSystemFunctions()
-    while true
-        try
-            print("> ")
-            sexp = JLLisp.Reader.read()
-            sexp == JLLisp.Symbols.symbolQuit && break
-            ret = JLLisp.Eval.eval_(sexp)
-            println(ret)
-        catch e
-            println(typeof(e))
-            break
+    function repl()
+        println("Welcome to JLLisp! (2019-8-11)")
+        println("> Copyright (C) goropikari 2019.")
+        println("> Type quit and hit Enter for leaving JLLisp.")
+        JLLisp.Function_.registSystemFunctions()
+        while true
+            try
+                print("> ")
+                sexp = JLLisp.Reader.read()
+                sexp == JLLisp.Symbols.symbolQuit && break
+                ret = JLLisp.Eval.eval_(sexp)
+                println(string(ret))
+            catch e
+                println(typeof(e))
+                break
+            end
         end
+        println("Bye!")
     end
 end
 
