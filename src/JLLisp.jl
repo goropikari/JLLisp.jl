@@ -1,4 +1,5 @@
 module JLLisp
+export T, Atom, Number_, List, Null, Nil
 
 abstract type T end
 abstract type Atom <: T end
