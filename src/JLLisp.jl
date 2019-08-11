@@ -2,6 +2,7 @@ module JLLisp
 
 abstract type T end
 abstract type Atom <: T end
+abstract type Number_ <: Atom end
 abstract type List <: T end
 struct Null <: List end
 
@@ -20,17 +21,25 @@ module Symbols
         end
     end
 
-    symboltable = Dict{String, Symbol_}()
+    const symboltable = Dict{String, Symbol_}()
     function symbol_(name::String)
         get!(symboltable, name, Symbol_(name))
     end
 
-    symbolT = symbol_("T")
+    const symbolT = symbol_("T")
     symbolT.value = symbolT
-    symbolQuit = symbol_("QUIT")
+    const symbolQuit = symbol_("QUIT")
 
 end # Symbols_
 
+module Integer__
+    struct Integer_
+        value::Integer
+    end
+
+    # todo: other operations
+    add(a::Integer_, b::Integer_) = Integer_(+(a.value, b.value))
+end # Integer__
 
 module Cons_
     import ..JLLisp
