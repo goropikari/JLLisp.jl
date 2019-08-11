@@ -19,6 +19,4 @@ using Test
     form.car = JLLisp.Symbols.symboltable["ADD"]
     form.cdr = JLLisp.Cons_.Cons(x, JLLisp.Cons_.Cons(y, JLLisp.Null()))
     @test JLLisp.Eval.eval_(form) == JLLisp.Integer__.Integer_(3)
-
-
 end

@@ -168,9 +168,121 @@ module Function_
         regist("SYMBOL-FUNCTION", SymbolFunction())
     end
     registSystemFunctions()
-
-
-
 end # Function_
+
+module Reader
+    using ..JLLisp
+    const charbuffersize = 256
+    charbuff = Vector{Char}()
+    ch = ' '
+    line = ""
+    indexofline = 1
+    linelength = 0
+
+    function read()
+        global line = readline()
+        prepare()
+        return getSexp()
+    end
+
+    function prepare()
+        global indexofline = 1
+        global linelength = length(line)
+        global charbuff = Vector{Char}(line)
+        push!(charbuff, '\0')
+        getchar()
+    end
+
+    function getchar()
+        global ch = charbuff[indexofline]
+        global indexofline += 1
+    end
+
+    function skipspace()
+        while isspace(ch)
+            getchar()
+        end
+    end
+
+    function getSexp()
+        while true
+            skipspace()
+            ch == '('   &&  return makelist()
+            ch == '\''  &&  return makequote()
+            ch == '-'   &&  return makeminusnumber()
+            isdigit(ch) &&  return makenumber()
+            return makesymbol()
+        end
+    end
+
+    function makelist() end
+    function makequote() end
+
+    function makeminusnumber()
+        nch = charbuff[indexofline]
+        isdigit(nch) || return makesymbolinternal(Char[ch]) # todo: 修正
+        return makenumber()
+    end
+
+    function makenumber()
+        str = Vector{Char}()
+        if ch == '-'
+            push!(str, ch)
+            getchar()
+        end
+        while indexofline <= linelength + 1
+            ch == '(' || ch == ')' && break
+            isspace(ch) && break
+            if !isdigit(ch)
+                global indexofline -= 1
+                return makesymbolinternal(str)
+            end
+            push!(str, ch)
+            getchar()
+        end
+        value = parse(Int, String(str))
+        return JLLisp.Integer__.Integer_(value)
+    end
+
+    function makesymbol()
+        global ch = uppercase(ch)
+        str = Char[ch]
+        return makesymbolinternal(str)
+    end
+
+    function makesymbolinternal(str::Vector{Char})
+        while indexofline < linelength + 1
+            getchar()
+            ch in ('(', ')') && break
+            isspace(ch) && break
+            global ch = uppercase(ch)
+            push!(str, ch)
+        end
+        symstr = String(str)
+
+        symstr == "NIL" && return JLLisp.Null()
+        return JLLisp.Symbols.symbol_(symstr)
+    end
+end # Reader
+
+module TopLevel
+    using ..JLLisp
+    println("Welcome to JLLisp! (2019-8-11)")
+    println("> Copyright (C) goropikari 2019.")
+    println("> Type quit and hit Enter for leaving JLLisp.")
+    JLLisp.Function_.registSystemFunctions()
+    while true
+        try
+            print("> ")
+            sexp = JLLisp.Reader.read()
+            sexp == JLLisp.Symbols.symbolQuit && break
+            ret = JLLisp.Eval.eval_(sexp)
+            println(ret)
+        catch e
+            println(typeof(e))
+            break
+        end
+    end
+end
 
 end # JLLisp module
