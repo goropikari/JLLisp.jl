@@ -11,4 +11,14 @@ using Test
     @test x == JLLisp.Eval.eval_(x) # Atom
     @test isa(JLLisp.Null(), JLLisp.Null)
     @test JLLisp.Eval.eval_(JLLisp.Null()) == JLLisp.Null() # Null
+
+    z = JLLisp.Cons_.Cons(x, JLLisp.Cons_.Cons(y, JLLisp.Null()))
+    @test JLLisp.Integer__.Integer_(3) == JLLisp.Function_.funcall(JLLisp.Function_.Add(), z)
+
+    form = JLLisp.Cons_.Cons()
+    form.car = JLLisp.Symbols.symboltable["ADD"]
+    form.cdr = JLLisp.Cons_.Cons(x, JLLisp.Cons_.Cons(y, JLLisp.Null()))
+    @test JLLisp.Eval.eval_(form) == JLLisp.Integer__.Integer_(3)
+
+
 end

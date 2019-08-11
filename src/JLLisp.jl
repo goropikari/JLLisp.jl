@@ -25,6 +25,29 @@ module Eval
         if isa(form, JLLisp.Null) return form end
         if isa(form, JLLisp.Atom) return form end
         # todo: cons
+        car = form.car
+        isa(car, JLLisp.Symbols.Symbol_) || error("Not a Symbol: $(car)")
+        try
+            global fun = car.fn
+        catch
+            error("Undefined Function Error: $(car)")
+        end
+
+        # システム関数の評価
+        if isa(fun, JLLisp.Function_.Func)
+            argumentlist = form.cdr
+            return JLLisp.Function_.funcall(fun, argumentlist)
+        end
+
+        # if isa(fun, JLLisp.Cons_.Cons)
+        #     cdr = fun.cdr
+        #     lambdalist = cdr.car
+        #     body = cdr.cdr
+        #     lambdalist == JLLisp.Null() && return evalbody(body)
+        #
+        #     return bindevalbody(lambdalist, body, form.cdr)
+        # end
+        error("Not a Function: $(fun)")
     end
 
 end # Eval
@@ -77,5 +100,77 @@ module Cons_
     end
 end#module
 
+
+module Function_
+    import ..JLLisp
+    abstract type Func <: JLLisp.Atom end
+
+    function funcall(fn::Func, arguments::JLLisp.List)
+        return JLLisp.Null()
+    end
+
+    function regist(name::String, fn::Func)
+        sym = JLLisp.Symbols.symbol_(name)
+        sym.fn = fn
+    end
+
+    struct Car <: Func end
+    struct Cdr <: Func end
+    struct FunCons <: Func end
+    struct Add <: Func end
+    struct Defun <: Func end
+    struct SymbolFunction <: Func end
+
+    function funcall(fn::Car, arguments::JLLisp.List)
+        arg1 = JLLisp.Eval.eval(arguments.car)
+        return arg1 == JLLisp.Null() ? JLLisp.Null() : arg1.cdr
+    end
+
+    function funcall(fn::Cdr, arguments::JLLisp.List)
+        arg1 = JLLisp.Eval.eval(arguments.car)
+        return arg1 == JLLisp.Null() ? JLLisp.Null() : arg1.cdr
+    end
+
+    function funcall(fn::FunCons, arguments::JLLisp.List)
+        arg1 = JLLisp.Eval.eval(arguments.car)
+        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        return JLLisp.Cons_.Cons(arg1, arg2)
+    end
+
+    function funcall(fn::Add, arguments::JLLisp.List)
+        arg1 = JLLisp.Eval.eval(arguments.car)
+        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        return JLLisp.Integer__.add(arg1, arg2)
+    end
+
+    function funcall(fn::Defun, arguments::JLLisp.List)
+        arg1 = arguments.car
+        args = arguments.cdr
+        fun = arg1
+        lambda = JLLisp.Cons_.Cons()
+        lambda.car = Symbol_.symbol_("LAMBDA")
+        lambda.cdr = args
+        fun.fn = lambda
+        return fun
+    end
+
+    function funcall(fn::SymbolFunction, arguments::JLLisp.List)
+        arg1 = JLLisp.Eval.eval_(arguments.car)
+        return arg1.fn
+    end
+
+    function registSystemFunctions()
+        regist("CAR", Car())
+        regist("CDR", Cdr())
+        regist("CONS", FunCons())
+        regist("ADD", Add())
+        regist("Defun", Defun())
+        regist("SYMBOL-FUNCTION", SymbolFunction())
+    end
+    registSystemFunctions()
+
+
+
+end # Function_
 
 end # JLLisp module
