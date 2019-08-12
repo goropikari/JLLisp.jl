@@ -511,6 +511,10 @@ module TopLevel
                 print("> ")
                 sexp = JLLisp.Reader.read()
                 sexp == JLLisp.Symbols.symbolQuit && break
+                @async if eof(stdin) # exit when Ctrl-d is typed
+                    println("\nBye!")
+                    exit(0)
+                end
                 ret = JLLisp.Eval.eval_(sexp)
                 println(string(ret))
             catch e
