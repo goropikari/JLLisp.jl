@@ -39,6 +39,10 @@ Nil = JLLisp.Nil
     @test eval_(read_(ex = "(/ 1 2)")) == JLLisp.Integer__.Integer_(0)
     @test eval_(read_(ex = "(/ 3 2)")) == JLLisp.Integer__.Integer_(1)
     @test eval_(read_(ex = "(/ -3 2)")) == JLLisp.Integer__.Integer_(-1)
+    @test eval_(read_(ex = "(+ (+ 1 2) (+ 3 4))")) == JLLisp.Integer__.Integer_(10)
+    @test eval_(read_(ex = "(- (+ -1 2) (- 1 2))")) == JLLisp.Integer__.Integer_(2)
+    @test eval_(read_(ex = "(* (+ 1 2) (- 2 4))")) == JLLisp.Integer__.Integer_(-6)
+    @test eval_(read_(ex = "(/ (+ 100 -2) (- 4 2))")) == JLLisp.Integer__.Integer_(49)
     @test eval_(read_(ex = "(<= 1 1)")) == symT
     @test eval_(read_(ex = "(<= -3 2)")) == symT
     @test eval_(read_(ex = "(>= 1 1)")) == symT

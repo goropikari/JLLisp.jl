@@ -149,82 +149,82 @@ module Function_
     struct SymbolFunction <: Func end
 
     function funcall(fn::Car, arguments::JLLisp.List)
-        arg1 = JLLisp.Eval.eval(arguments.car)
-        return arg1 == JLLisp.Null() ? JLLisp.Null() : arg1.cdr
+        arg1 = JLLisp.Eval.eval_(arguments.car)
+        return arg1 == JLLisp.Null() ? JLLisp.Null() : arg1.car
     end
 
     function funcall(fn::Cdr, arguments::JLLisp.List)
-        arg1 = JLLisp.Eval.eval(arguments.car)
+        arg1 = JLLisp.Eval.eval_(arguments.car)
         return arg1 == JLLisp.Null() ? JLLisp.Null() : arg1.cdr
     end
 
     function funcall(fn::FunCons, arguments::JLLisp.List)
-        arg1 = JLLisp.Eval.eval(arguments.car)
-        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        arg1 = JLLisp.Eval.eval_(arguments.car)
+        arg2 = JLLisp.Eval.eval_(arguments.cdr.car)
         return JLLisp.Cons_.Cons(arg1, arg2)
     end
 
     function funcall(fn::Eq, arguments::JLLisp.List)
-        arg1 = JLLisp.Eval.eval(arguments.car)
-        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        arg1 = JLLisp.Eval.eval_(arguments.car)
+        arg2 = JLLisp.Eval.eval_(arguments.cdr.car)
         if arg1 == arg2
             return JLLisp.Symbols.symbolT
         else
-            return JLLisp.Cons_.Cons(arg1, arg2)
+            return JLLisp.Nil
         end
     end
 
     function funcall(fn::Add, arguments::JLLisp.List)
-        arg1 = JLLisp.Eval.eval(arguments.car)
-        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        arg1 = JLLisp.Eval.eval_(arguments.car)
+        arg2 = JLLisp.Eval.eval_(arguments.cdr.car)
         return JLLisp.Integer__.add(arg1, arg2)
     end
 
     function funcall(fn::Sub, arguments::JLLisp.List)
-        arg1 = JLLisp.Eval.eval(arguments.car)
-        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        arg1 = JLLisp.Eval.eval_(arguments.car)
+        arg2 = JLLisp.Eval.eval_(arguments.cdr.car)
         return JLLisp.Integer__.sub(arg1, arg2)
     end
 
     function funcall(fn::Mul, arguments::JLLisp.List)
-        arg1 = JLLisp.Eval.eval(arguments.car)
-        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        arg1 = JLLisp.Eval.eval_(arguments.car)
+        arg2 = JLLisp.Eval.eval_(arguments.cdr.car)
         return JLLisp.Integer__.mul(arg1, arg2)
     end
 
     function funcall(fn::Div, arguments::JLLisp.List)
-        arg1 = JLLisp.Eval.eval(arguments.car)
-        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        arg1 = JLLisp.Eval.eval_(arguments.car)
+        arg2 = JLLisp.Eval.eval_(arguments.cdr.car)
         return JLLisp.Integer__.div(arg1, arg2)
     end
 
     function funcall(fn::Ge, arguments::JLLisp.List)
-        arg1 = JLLisp.Eval.eval(arguments.car)
-        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        arg1 = JLLisp.Eval.eval_(arguments.car)
+        arg2 = JLLisp.Eval.eval_(arguments.cdr.car)
         return JLLisp.Integer__.ge(arg1, arg2)
     end
 
     function funcall(fn::Le, arguments::JLLisp.List)
-        arg1 = JLLisp.Eval.eval(arguments.car)
-        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        arg1 = JLLisp.Eval.eval_(arguments.car)
+        arg2 = JLLisp.Eval.eval_(arguments.cdr.car)
         return JLLisp.Integer__.le(arg1, arg2)
     end
 
     function funcall(fn::Gt, arguments::JLLisp.List)
-        arg1 = JLLisp.Eval.eval(arguments.car)
-        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        arg1 = JLLisp.Eval.eval_(arguments.car)
+        arg2 = JLLisp.Eval.eval_(arguments.cdr.car)
         return JLLisp.Integer__.gt(arg1, arg2)
     end
 
     function funcall(fn::Lt, arguments::JLLisp.List)
-        arg1 = JLLisp.Eval.eval(arguments.car)
-        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        arg1 = JLLisp.Eval.eval_(arguments.car)
+        arg2 = JLLisp.Eval.eval_(arguments.cdr.car)
         return JLLisp.Integer__.lt(arg1, arg2)
     end
 
     function funcall(fn::NumberEqual, arguments::JLLisp.List)
-        arg1 = JLLisp.Eval.eval(arguments.car)
-        arg2 = JLLisp.Eval.eval(arguments.cdr.car)
+        arg1 = JLLisp.Eval.eval_(arguments.car)
+        arg2 = JLLisp.Eval.eval_(arguments.cdr.car)
         return JLLisp.Integer__.numberequal(arg1, arg2)
     end
 
