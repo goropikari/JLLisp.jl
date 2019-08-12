@@ -9,6 +9,18 @@ struct Null <: List end
 const Nil = Null()
 Base.string(x::Null) = "NIL"
 
+module Cons_
+    import ..JLLisp
+    mutable struct Cons <: JLLisp.List
+        car::JLLisp.T
+        cdr::JLLisp.T
+    end
+
+    function Cons()
+        Cons(JLLisp.Null(), JLLisp.Null())
+    end
+end # Cons_
+
 module Eval
     import ..JLLisp
     const maxstacksize = 65536
@@ -42,17 +54,27 @@ module Eval
         end
 
         # evaluate S expression
-        # if isa(fun, JLLisp.Cons_.Cons)
-        #     cdr = fun.cdr
-        #     lambdalist = cdr.car
-        #     body = cdr.cdr
-        #     lambdalist == JLLisp.Null() && return evalbody(body)
-        #
-        #     return bindevalbody(lambdalist, body, form.cdr)
-        # end
+        if isa(fun, JLLisp.Cons_.Cons)
+            cdr = fun.cdr
+            lambdalist = cdr.car
+            body = cdr.cdr
+            lambdalist == JLLisp.Null() && return evalbody(body)
+
+            return bindevalbody(lambdalist, body, form.cdr)
+        end
         error("Not a Function: $(fun)")
     end
 
+    # bindevalbody を実装
+    function bindevalbody end
+
+    # bindbody
+    function evalbody(body::JLLisp.Cons_.Cons)
+        while true
+            body.cdr == JLLisp.Nil && return JLLisp.Eval.eval_(body.car)
+            body = body.cdr
+        end
+    end
 end # Eval
 
 module Symbols
@@ -101,18 +123,6 @@ module Integer__
     numberequal(a::Integer_, b::Integer_) = lisptf(a.value == b.value)
     Base.string(x::Integer_) = string(x.value)
 end # Integer__
-
-module Cons_
-    import ..JLLisp
-    mutable struct Cons <: JLLisp.List
-        car::JLLisp.T
-        cdr::JLLisp.T
-    end
-
-    function Cons()
-        Cons(JLLisp.Null(), JLLisp.Null())
-    end
-end#module
 
 
 module Function_
