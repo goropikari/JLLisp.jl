@@ -19,6 +19,26 @@ module Cons_
     function Cons()
         Cons(JLLisp.Null(), JLLisp.Null())
     end
+
+    function Base.string(cons::Cons)
+        str = ""
+        list = cons
+        str *= "("
+        while true
+            str *= string(list.car)
+            if list.cdr == JLLisp.Nil
+                str *= ")"
+                break
+            elseif isa(list.cdr, JLLisp.Atom)
+                str *= " . " * string(list.cdr) * ")"
+                break
+            else
+                str *= " "
+                list = list.cdr
+            end
+        end
+        return str
+    end
 end # Cons_
 
 module Eval
@@ -110,7 +130,6 @@ module Integer__
         value::Integer
     end
 
-    # todo: other operations
     lisptf(bool) = bool ? JLLisp.Symbols.symbolT : JLLisp.Null()
     add(a::Integer_, b::Integer_) = Integer_(+(a.value, b.value))
     sub(a::Integer_, b::Integer_) = Integer_(-(a.value, b.value))
@@ -461,7 +480,6 @@ module TopLevel
                 println(string(ret))
             catch e
                 println(typeof(e))
-                break
             end
         end
         println("Bye!")
