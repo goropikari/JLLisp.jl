@@ -45,7 +45,7 @@ module Eval
     import ..JLLisp
     const maxstacksize = 65536
     const stack = Vector{JLLisp.T}(undef, maxstacksize)
-    stackP = 0
+    stackP = 1
 
     function eval_(form::JLLisp.T)
         if isa(form, JLLisp.Symbols.Symbol_)
@@ -86,7 +86,40 @@ module Eval
     end
 
     # bindevalbody を実装
-    function bindevalbody end
+    function bindevalbody(lambda::JLLisp.Cons_.Cons, body::JLLisp.Cons_.Cons, form::JLLisp.Cons_.Cons)
+        oldstackP = stackP
+        while true
+            ret = eval_(form.car)
+            global stack[stackP] = ret
+            global stackP += 1
+            form.cdr == JLLisp.Nil && break
+            form = form.cdr
+        end
+
+        arglist = lambda
+        sp = oldstackP
+        while true
+            sym = arglist.car
+            sym.value, stack[sp] = stack[sp], sym.value
+            sp += 1
+            arglist.cdr == JLLisp.Nil && break
+            arglist = arglist.cdr
+        end
+
+        ret = evalbody(body)
+
+        arglist = lambda
+        global stackP = oldstackP
+        while true
+            sym= arglist.car
+            sym.value = stack[oldstackP]
+            oldstackP += 1
+            arglist.cdr == JLLisp.Nil && break
+            arglist = arglist.cdr
+        end
+
+        return ret
+    end
 
     # bindbody
     function evalbody(body::JLLisp.Cons_.Cons)
@@ -108,6 +141,8 @@ module Symbols
         function Symbol_(name::String)
             x = new()
             x.name = name
+            x.value = JLLisp.Nil
+            x.fn = JLLisp.Nil
             x
         end
     end

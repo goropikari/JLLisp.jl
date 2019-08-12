@@ -60,4 +60,10 @@ Nil = JLLisp.Nil
     @test eval_(read_(ex="(type-of 1)")) == JLLisp.Symbols.symbol_("JLLISP.INTEGER__.INTEGER_")
     eval_(read_(ex = "(defun f () (+ 10 20))"))
     @test eval_(read_(ex = "(f)")) == JLLisp.Integer__.Integer_(30)
+
+    eval_(read_(ex = "(defun g (x) (+ 10 x))"))
+    @test eval_(read_(ex = "(g 100)")) == JLLisp.Integer__.Integer_(110)
+
+    eval_(read_(ex = "(defun fac (n) (if (< n 1) 1 (* n (fac (- n 1)))))"))
+    @test eval_(read_(ex = "(fac 5)")) == JLLisp.Integer__.Integer_(120)
 end
