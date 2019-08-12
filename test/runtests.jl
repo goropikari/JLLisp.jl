@@ -49,4 +49,9 @@ Nil = JLLisp.Nil
     @test eval_(read_(ex = "(> 2 -3)")) == symT
     @test eval_(read_(ex = "(= 1 1)")) == symT
     @test eval_(read_(ex = "(= -3 2)")) == JLLisp.Nil
+    @test eval_(read_(ex="(setq hoge 10)")) == JLLisp.Integer__.Integer_(10)
+    @test eval_(read_(ex="hoge")) == JLLisp.Integer__.Integer_(10)
+    @test eval_(read_(ex="(if (< 10 20) 100 200)")) == JLLisp.Integer__.Integer_(100)
+    @test eval_(read_(ex="(if (> 10 20) 100 200)")) == JLLisp.Integer__.Integer_(200)
+    @test eval_(read_(ex="(type-of 1)")) == JLLisp.Symbols.symbol_("JLLISP.INTEGER__.INTEGER_")
 end

@@ -18,7 +18,7 @@ module Eval
     function eval_(form::JLLisp.T)
         if isa(form, JLLisp.Symbols.Symbol_)
             try
-                symbolvalue = form.value
+                global symbolvalue = form.value
             catch
                 error("Unbound Variable Error: $(form)")
             end
@@ -27,7 +27,6 @@ module Eval
 
         if isa(form, JLLisp.Null) return form end
         if isa(form, JLLisp.Atom) return form end
-        # todo: cons
         car = form.car
         isa(car, JLLisp.Symbols.Symbol_) || error("Not a Symbol: $(car)")
         try
@@ -36,12 +35,13 @@ module Eval
             error("Undefined Function Error: $(car)")
         end
 
-        # システム関数の評価
+        # system functions
         if isa(fun, JLLisp.Function_.Func)
             argumentlist = form.cdr
             return JLLisp.Function_.funcall(fun, argumentlist)
         end
 
+        # evaluate S expression
         # if isa(fun, JLLisp.Cons_.Cons)
         #     cdr = fun.cdr
         #     lambdalist = cdr.car
@@ -141,7 +141,11 @@ module Function_
     struct Gt <: Func end
     struct Lt <: Func end
     struct NumberEqual <: Func end
+    struct Quote <: Func end
+    struct Setq <: Func end
     struct Defun <: Func end
+    struct If <: Func end
+    struct TypeOf <: Func end
     struct SymbolFunction <: Func end
 
     function funcall(fn::Car, arguments::JLLisp.List)
@@ -224,15 +228,46 @@ module Function_
         return JLLisp.Integer__.numberequal(arg1, arg2)
     end
 
+    function funcall(fn::Quote, arguments::JLLisp.List)
+        return arguments.car
+    end
+
+    function funcall(fn::Setq, arguments::JLLisp.List)
+        arg1 = arguments.car
+        arg2 = JLLisp.Eval.eval_(arguments.cdr.car)
+        sym = arg1
+        value = JLLisp.Eval.eval_(arg2)
+        sym.value = value
+        return value
+    end
+
     function funcall(fn::Defun, arguments::JLLisp.List)
         arg1 = arguments.car
         args = arguments.cdr
         fun = arg1
         lambda = JLLisp.Cons_.Cons()
-        lambda.car = Symbol_.symbol_("LAMBDA")
+        lambda.car = JLLisp.Symbols.symbol_("LAMBDA")
         lambda.cdr = args
         fun.fn = lambda
         return fun
+    end
+
+    function funcall(fn::If, arguments::JLLisp.List)
+        arg1 = arguments.car
+        args = arguments.cdr
+        arg2 = args.car
+        arg3 = args.cdr == JLLisp.Nil ? JLLisp.Nil : args.cdr.car
+        if JLLisp.Eval.eval_(arg1) != JLLisp.Nil
+            return JLLisp.Eval.eval_(arg2)
+        else
+            return JLLisp.Eval.eval_(arg3)
+        end
+    end
+
+    function funcall(fn::TypeOf, arguments::JLLisp.List)
+        arg1 = JLLisp.Eval.eval_(arguments.car)
+        type = typeof(arg1).name |> string |> uppercase
+        return JLLisp.Symbols.symbol_(type)
     end
 
     function funcall(fn::SymbolFunction, arguments::JLLisp.List)
@@ -254,7 +289,11 @@ module Function_
         regist(">", Gt())
         regist("<", Lt())
         regist("=", NumberEqual())
+        regist("QUOTE", Quote())
+        regist("SETQ", Setq())
         regist("DEFUN", Defun())
+        regist("IF", If())
+        regist("TYPE-OF", TypeOf())
         regist("SYMBOL-FUNCTION", SymbolFunction())
     end
     registSystemFunctions()
